@@ -1,1 +1,1 @@
-# Predictive-Maintenance-Scheduler
+The Predictive Maintenance Scheduler is designed to optimize the maintenance of machines by predicting when they are likely to fail. The system assigns maintenance schedules and tasks to employees, ensuring that machines are serviced proactively to reduce unplanned downtime. The project involves integrating machine learning and scheduling algorithms to improve efficiency and minimize costs in industrial operations.
