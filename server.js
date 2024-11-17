@@ -27,27 +27,24 @@ const departmentMachines = {
   D: ["D1","D2","D3","D4","D5","D6","D7","D8","D9","D10"]
 };
 
-
 const machineAssignments = { A: 0, B: 0, C: 0, D: 0 };
-
 
 app.post("/api/employees", async (req, res) => {
   const { name, department } = req.body;
-
-  if (!departmentMachines[department]) {
+ if (!departmentMachines[department]) {
     return res.status(400).send("Invalid department selected.");
   }
  const machineList = departmentMachines[department];
-  const assignedMachine = machineList[machineAssignments[department]];
+ const assignedMachine = machineList[machineAssignments[department]];
   machineAssignments[department] = (machineAssignments[department] + 1) % machineList.length;
  try {
-    const newEmployee = new Employee({
-      name,
-      department,
-      machine: assignedMachine,
-      status: "Not Active",
-      feedback: ""
-    });
+const newEmployee = new Employee({
+ name,
+ department,
+machine: assignedMachine,
+ status: "Not Active",
+ feedback: ""
+ });
     await newEmployee.save();
     res.status(201).send(newEmployee);
   } catch (error) {
@@ -63,14 +60,14 @@ app.put("/api/employees/:id",async (req,res) => {
     const updatedEmployee = await Employee.findByIdAndUpdate(
       id,
       { status, feedback },
-      { new: true } // This option returns the updated document
+      { new: true } 
     );
    if (!updatedEmployee) {
       return res.status(404).json({ message: "Employee not found" });
     }
    res.json(updatedEmployee);
   } catch (error) {
-    console.error("Error updating employee:", error);
+    console.error("Error in updating updating :", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 });
@@ -82,7 +79,7 @@ app.get("/api/employees", async (req, res) => {
    res.send(employees);
   } catch (error) {
     console.error("Error fetching employees:", error);
-    res.status(500).send("Error fetching employees.");
+    res.status(500).send("Error in fetching employees.");
   }
 });
 
@@ -90,64 +87,71 @@ app.get("/api/employees", async (req, res) => {
 
 app.get("/api/employees/pdf", async (req, res) => {
   try {
-    const employees = await Employee.find();
-const html = `
-      <html>
-       <head>
-        <style>
-        table { width: 100%; border-collapse: collapse; }
-         th, td { padding: 8px; border: 1px solid #ddd; text-align: left; }
-         th { background-color: #f2f2f2; }
-        .feedback { word-wrap: break-word; max-width: 200px; }
-        </style>
-        </head>
-        <body>
-        <h1>Employee Report</h1>
-         <table>
-          <tr>
-           <th>Name</th>
-            <th>Department</th>
-            <th>Machine</th>
-             <th>Status</th>
-            <th>Feedback</th>
-            <th>Timestamp</th>
-            </tr>
-            ${employees.map(emp => `
-             <tr>
-              <td>${emp.name}</td>
-              <td>${emp.department}</td>
-               <td>${emp.machine}</td>
-              <td>${emp.status}</td>
-               <td class="feedback">${emp.feedback || ""}</td>
-               <td>${emp.timestamp.toLocaleString()}</td>
-            </tr>
-         `).join("")}
-        </table>
-        </body>
-      </html>
-    `;
-
-    const document = {
-      html: html,
-      data: {},  // Required field, even if empty
-      path: "./employees.pdf",  // Required field
-    };
-
-    const options = {
-      format: "A4",
-      orientation: "portrait",
-      border: "10mm",
-    };
-  await pdf.create(document, options);
-    res.download("./employees.pdf", "employees.pdf", () => {
-      fs.unlinkSync("./employees.pdf"); // Delete the file after download
-    });
-  } catch (error) {
-    console.error("Error:", error);
-    res.status(500).send("Error generating PDF.");
+  const employees = await Employee.find();
+  const html = `
+  <html>
+  <head>
+  <style>
+  table { width: 100%; border-collapse: collapse; }
+  th, td { padding: 8px; border: 1px solid #ddd; text-align: left; }
+  th { background-color: #f2f2f2; }
+  .feedback { word-wrap: break-word; max-width: 200px; }
+  </style>
+  </head>
+  <body>
+  <h1>Employee Report</h1>
+  <table>
+  <tr>
+  <th>Name</th>
+  <th>Department</th>
+  <th>Machine</th>
+  <th>Status</th>
+  <th>Feedback</th>
+  <th>Timestamp</th>
+  </tr>
+  ${employees.map(emp => `
+  <tr>
+  <td>${emp.name}</td>
+  <td>${emp.department}</td>
+  <td>${emp.machine}</td>
+  <td>${emp.status}</td>
+  <td class="feedback">${emp.feedback || ""}</td>
+  <td>${emp.timestamp.toLocaleString()}</td>
+  </tr>
+  `).join("")}
+  </table>
+  </body>
+  </html>
+  `;
+ const document = {
+  html: html,
+  data: {},
+  path: "./employees.pdf",
+  };
+const options = {
+  format: "A4",
+  orientation: "portrait",
+  border: "10mm",
+  };
+ await pdf.create(document, options);
+  res.download(document.path, "employees.pdf", (err) => {
+  if (err) {
+  console.error("Error during file download:", err.message);
   }
-});
-
+ fs.unlink(document.path, (unlinkErr) => {
+  if (unlinkErr) {
+  console.error("Error deleting file:", unlinkErr.message);
+  } else {
+  console.log("Temporary file deleted .");
+  }
+  });
+  });
+  } catch (error) {
+  console.error("Error generating PDF:", error.message);
+  res.status(500).send("Error generating PDF.");
+  }
+  });
+  
 
 
 
